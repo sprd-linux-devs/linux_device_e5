@@ -1,30 +1,16 @@
 #!/usr/bin/env python3
-"""Apply shared fixes to a clean, pinned E5 kernel without T551M board patches."""
+"""Apply only E5 model differences over the shared committed kernel baseline."""
 import argparse
 from pathlib import Path
 import runpy
-import subprocess
 
 SHARED = Path(__file__).resolve().parents[1] / 'linux_device_common/kernel'
-COMMIT = '020b970e351e'
+CHECKER = Path(__file__).resolve().parents[2] / 'upstream/check-kernel-source.py'
 
 
 def apply(kernel):
     kernel = Path(kernel)
-    head = subprocess.check_output(['git', '-C', str(kernel), 'rev-parse', 'HEAD'], text=True).strip()
-    if not head.startswith(COMMIT):
-        raise ValueError('Expected E5 kernel ' + COMMIT)
-    runpy.run_path(str(SHARED / 'display.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'power.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'charger-capabilities.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'emmc.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'sd-power.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'eic.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'thermal.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'sipa.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'fuel-gauge.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'wifi-sae.py'))['apply'](kernel)
-    runpy.run_path(str(SHARED / 'wifi-stations.py'))['apply'](kernel)
+    runpy.run_path(str(CHECKER))['check'](kernel, require_clean=False)
     # A separate checkout is essential: the donor replaces the charger and
     # disables E5's touch firmware and amplifier. Never build E5 from that tree.
     for path in ('drivers/power/supply/bq2560x-charger.c',

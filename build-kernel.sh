@@ -1,6 +1,7 @@
 #!/bin/bash
 # Linux/WSL; use a separate clean E5 source/object tree, never the T551M build.
 set -euo pipefail
+export LOCALVERSION=
 HERE=$(cd "$(dirname "$0")" && pwd)
 TOP=$(cd "$HERE/../.." && pwd)
 K=${E5_KERNEL_TREE:?Set E5_KERNEL_TREE to a clean linux-lts-e5 checkout}

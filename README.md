@@ -28,7 +28,12 @@
 
 ## E5 专属差异
 
-- 从固定内核 `020b970e351e` 的独立工作树构建。拒绝含 T551M 充电、背光和电池配置补丁的源码树。
+- 与通用构建共用 `sprd-linux-devs/linux` 的 `e5-6.18` 分支；最低提交见主仓库
+  `upstream/kernel-source.json`。通用修复已提交内核，只在准备阶段应用 E5 的
+  USB/OTG、CPUFreq、Wi-Fi、AW32257 与 WCN 日志差异，不维护另一套内核分支。
+  拒绝含 T551M 充电、背光和电池配置补丁的源码树。
+- 固定版本字符串为内核基础版本加 `-e5-mobile4`，不附加 Git/dirty 后缀；
+  `source-commit` 记录内核提交。修改驱动后仍需一起构建并更新内核和匹配模块。
 - 保留 AW32257 充电、AW87xxx 功放、TLSC6x 触摸及 E5 原生设备树。
 - LTE 候选保留 E5 的 B38：`1,3,5,8,34,38,39,40,41`；NR 仍动态查询。
 - E5 的 64 位厂商程序在 cmdline 后还会解析 bootconfig。选择 A 槽时，两处输入保持一致，
@@ -59,8 +64,11 @@ SDP/CDP、原厂电压、低温/高温 JEITA 和芯片安全寄存器保持原�
 需提前安装。不要指向 T551M 的构建目录。
 
 ```sh
-E5_KERNEL_TREE=/path/to/clean-e5-linux \
-E5_OUTDIR=/path/to/e5-objects \
+git -C linux-lts-e5 fetch origin e5-6.18
+git -C linux-lts-e5 worktree add ../work/e5-mobile-linux origin/e5-6.18
+
+E5_KERNEL_TREE="$PWD/work/e5-mobile-linux" \
+E5_OUTDIR="$PWD/work/e5-objects" \
   bash device/linux_device_e5/build-kernel.sh
 
 # 对已有的离线 E5 rootfs 安装功能；不会写入正在运行的系统。
